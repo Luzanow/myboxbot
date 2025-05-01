@@ -36,10 +36,18 @@ async def view_locations(callback_query: types.CallbackQuery):
     locations = [
         ("вул. Новокостянтинівська, 22/15", "https://maps.google.com/?q=50.484716,30.490153"),
         ("просп. Відрадний, 107", "https://maps.google.com/?q=50.421183,30.413375"),
-        ("вул. Кирилівська, 41", "https://maps.google.com/?q=50.471213,30.486702")
+        ("вул. Кирилівська, 41", "https://maps.google.com/?q=50.471213,30.486702"),
+        ("вул. Дегтярівська, 21", "https://maps.google.com/?q=50.465731,30.464208"),
+        ("вул. Пілотів, 2А", "https://maps.google.com/?q=50.470850,30.508993"),
+        ("вул. Бажова, 8", "https://maps.google.com/?q=50.402645,30.324247"),
+        ("вул. Свято-Покровська, 213", "https://maps.google.com/?q=50.474941,30.645673"),
+        ("вул. Миколи Василенка, 2А", "https://maps.google.com/?q=50.424803,30.621457"),
+        ("вул. Микитинецька, 78", "https://maps.google.com/?q=50.471267,30.517697"),
+        ("вул. Квітнева Харченка, 35", "https://maps.google.com/?q=50.541140,30.482315"),
+        ("вул. Володимира Брожка, 38/58", "https://maps.google.com/?q=50.503401,30.619784")
     ]
-    for name, link in locations:
-        btn = InlineKeyboardMarkup().add(InlineKeyboardButton("Відкрити на карті", url=link))
+    for name, url in locations:
+        btn = InlineKeyboardMarkup().add(InlineKeyboardButton("Відкрити на карті", url=url))
         await bot.send_message(callback_query.from_user.id, f"Локація: {name}", reply_markup=btn)
 
 @dp.callback_query_handler(lambda c: c.data == "make_request")
