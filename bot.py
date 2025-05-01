@@ -103,5 +103,5 @@ async def finish(message: types.Message, phone, state: FSMContext):
     await message.answer("Дякуємо! Ваша заявка надіслана. Ми з вами зв'яжемось.")
     await state.finish()
 
-if name == "__main__":
+if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True)
