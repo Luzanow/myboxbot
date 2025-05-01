@@ -52,8 +52,20 @@ async def view_locations(callback_query: types.CallbackQuery):
 
 @dp.callback_query_handler(lambda c: c.data == "make_request")
 async def start_request(callback_query: types.CallbackQuery):
-    kb = ReplyKeyboardMarkup(resize_keyboard=True)
-    kb.add("вул. Новокостянтинівська, 22/15", "просп. Відрадний, 107", "вул. Кирилівська, 41")
+    kb = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+kb.add(
+    "вул. Новокостянтинівська, 22/15",
+    "просп. Відрадний, 107",
+    "вул. Кирилівська, 41",
+    "вул. Дегтярівська, 21",
+    "вул. Пілотів, 2А",
+    "вул. Бажова, 8",
+    "вул. Свято-Покровська, 213",
+    "вул. Миколи Василенка, 2А",
+    "вул. Микитинецька, 78",
+    "вул. Квітнева Харченка, 35",
+    "вул. Володимира Брожка, 38/58"
+)
     await Form.location.set()
     await bot.send_message(callback_query.from_user.id, "Оберіть локацію:", reply_markup=kb)
 
