@@ -145,7 +145,6 @@ async def get_name(message: types.Message, state: FSMContext):
     await Form.phone.set()
     contact_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     contact_kb.add(KeyboardButton("📱 Поділитися номером", request_contact=True))
-    contact_kb.add(KeyboardButton("⬅️ Повернутись назад"))
     await message.answer("📞 Надішліть ваш номер телефону кнопкою або введіть вручну:", reply_markup=contact_kb)
 
 @dp.message_handler(content_types=types.ContentType.CONTACT, state=Form.phone)
