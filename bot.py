@@ -27,9 +27,19 @@ async def start(message: types.Message):
     kb = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     kb.add(
         KeyboardButton("📍 Переглянути локації"),
-        KeyboardButton("📦 Орендувати бокс")
+        KeyboardButton("📦 Орендувати бокс"),
+        KeyboardButton("📞 Зв’язатись з нами")
     )
     await message.answer("👋 Вітаємо в MyBox! Оберіть дію:", reply_markup=kb)
+
+@dp.message_handler(lambda message: message.text == "📞 Зв’язатись з нами")
+async def contact_info(message: types.Message):
+    kb = InlineKeyboardMarkup(row_width=1)
+    kb.add(
+        InlineKeyboardButton("🌐 Сайт MyBox", url="https://www.mybox.kiev.ua"),
+        InlineKeyboardButton("💬 Написати в Telegram", url="https://t.me/MyBoxSupport")
+    )
+    await message.answer("📞 Контактна інформація:\n👤 Тарас\n📱 095 938 7317", reply_markup=kb)
 
 @dp.message_handler(lambda message: message.text == "📍 Переглянути локації")
 async def view_locations(message: types.Message):
@@ -50,7 +60,6 @@ async def view_locations(message: types.Message):
     ]
     for name, url in locations:
         kb.add(InlineKeyboardButton(name, url=url))
-
     await message.answer("📌 Оберіть локацію для перегляду на карті:", reply_markup=kb)
 
 @dp.message_handler(lambda message: message.text == "📦 Орендувати бокс")
@@ -76,19 +85,19 @@ async def start_request(message: types.Message):
 @dp.message_handler(state=Form.location)
 async def get_location(message: types.Message, state: FSMContext):
     await state.update_data(location=message.text)
-    kb = ReplyKeyboardMarkup(resize_keyboard=True).add("📐 5м²-1850грн", "📐 7.5м²-2350грн", "📐 15м²-3800грн", "📐 30м²-6650грн")
+    kb = ReplyKeyboardMarkup(resize_keyboard=True).add("📐 5м²-1850грн", "📐 7.5м²2350грн", "📐 15м²-3800грн", "📐 30м²-6650грн")
     await Form.size.set()
-    await message.answer("✅ Локація збережена.\n📦 Оберіть розмір контейнера:", reply_markup=kb)
+    await message.answer("📦 Оберіть розмір контейнера:", reply_markup=kb)
 
 @dp.message_handler(state=Form.size)
 async def get_size(message: types.Message, state: FSMContext):
     await state.update_data(size=message.text)
     await Form.duration.set()
-    await message.answer("🧾Увага! Знижка діє лише при повній оплаті за вибраний період.")
+    await message.answer("🧾 Знижка діє лише при повній оплаті за вибраний період.")
     kb = ReplyKeyboardMarkup(resize_keyboard=True).add(
         "🗓 1–3 місяці",
         "🗓 3–6 місяців (-3%)",
-        "🗓 6-11 місяців (-5%)",
+        "🗓 6–12 місяців (-5%)",
         "🗓 від 12 місяців (-10%)"
     )
     await message.answer("⏳ Оберіть термін оренди:", reply_markup=kb)
@@ -120,9 +129,8 @@ async def get_phone_contact(message: types.Message, state: FSMContext):
         f"📞 Телефон: {data['phone']}"
     )
     await bot.send_message(ADMIN_ID, text)
-    main_kb = ReplyKeyboardMarkup(resize_keyboard=True)
-    main_kb.add("⬅️ Повернутись на головну")
-    await message.answer("🚀 Ваша заявка надіслана! Дякуємо за користування MyBox!", reply_markup=main_kb)
+    kb = ReplyKeyboardMarkup(resize_keyboard=True).add("⬅️ Повернутись на головну")
+    await message.answer("🚀 Ваша заявка надіслана!", reply_markup=kb)
     await state.finish()
 
 @dp.message_handler(lambda message: message.text == "⬅️ Повернутись на головну")
