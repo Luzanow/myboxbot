@@ -25,9 +25,9 @@ class Form(StatesGroup):
 def get_main_reply_keyboard():
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
     kb.add(
-        KeyboardButton("📦 Орендувати бокс"),
-        KeyboardButton("📍 Переглянути локації"),
-        KeyboardButton("📞 Зв’язатись з нами")
+        KeyboardButton("📦Орендувати бокс"),
+        KeyboardButton("📍Переглянути локації"),
+        KeyboardButton("📞Зв’язатись з нами")
     )
     return kb
 
