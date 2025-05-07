@@ -76,7 +76,7 @@ async def start_request(message: types.Message):
 @dp.message_handler(state=Form.location)
 async def get_location(message: types.Message, state: FSMContext):
     await state.update_data(location=message.text)
-    kb = ReplyKeyboardMarkup(resize_keyboard=True).add("📐 5 м²", "📐 10 м²", "📐 15 м²")
+    kb = ReplyKeyboardMarkup(resize_keyboard=True).add("📐 5 м²", "📐 7.5 м²", "📐 15 м²"📐 30 м²")
     await Form.size.set()
     await message.answer("✅ Локація збережена.\n📦 Оберіть розмір контейнера:", reply_markup=kb)
 
