@@ -1,7 +1,7 @@
 import logging
 import os
 from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
@@ -69,7 +69,8 @@ async def view_locations(callback_query: types.CallbackQuery):
     ]
     for name, url in locations:
         kb.add(InlineKeyboardButton(name, url=url))
-    await bot.send_message(callback_query.from_user.id, "📌 Локації:", reply_markup=kb)
+    kb.add(InlineKeyboardButton("⬅️ Повернутись назад", callback_data="start"))
+    await bot.send_message(callback_query.from_user.id, "📌 Оберіть локацію:", reply_markup=kb)
     await callback_query.answer()
 
 @dp.callback_query_handler(lambda c: c.data == "order")
@@ -91,8 +92,9 @@ async def start_order(callback_query: types.CallbackQuery):
     ]
     for addr in addresses:
         kb.add(InlineKeyboardButton(addr, callback_data=f"loc_{addr}"))
+    kb.add(InlineKeyboardButton("⬅️ Назад", callback_data="start"))
     await Form.location.set()
-    await bot.send_message(callback_query.from_user.id, "📍 Оберіть локацію:", reply_markup=kb)
+    await bot.send_message(callback_query.from_user.id, "📍 Оберіть локацію для оренди:", reply_markup=kb)
     await callback_query.answer()
 
 @dp.callback_query_handler(lambda c: c.data.startswith("loc_"), state=Form.location)
@@ -104,7 +106,7 @@ async def get_location(callback_query: types.CallbackQuery, state: FSMContext):
         InlineKeyboardButton("📐 7.5м² – 2350грн", callback_data="size_7"),
         InlineKeyboardButton("📐 15м² – 3800грн", callback_data="size_15"),
         InlineKeyboardButton("📐 30м² – 6650грн", callback_data="size_30"),
-    )
+    ).add(InlineKeyboardButton("⬅️ Назад", callback_data="order"))
     await Form.size.set()
     await bot.send_message(callback_query.from_user.id, "📦 Оберіть розмір:", reply_markup=kb)
     await callback_query.answer()
@@ -124,15 +126,11 @@ async def get_size(callback_query: types.CallbackQuery, state: FSMContext):
         InlineKeyboardButton("🗓 3–6 місяців (-3%)", callback_data="dur_3"),
         InlineKeyboardButton("🗓 6–12 місяців (-5%)", callback_data="dur_6"),
         InlineKeyboardButton("🗓 від 12 місяців (-10%)", callback_data="dur_12"),
+        InlineKeyboardButton("⬅️ Назад", callback_data="order")
     )
     await Form.duration.set()
     await bot.send_message(callback_query.from_user.id, "🧾 Знижка діє лише при повній оплаті за період.\n⏳ Оберіть термін:", reply_markup=kb)
     await callback_query.answer()
-
-@dp.callback_query_handler(lambda c: c.data == "back_size", state=Form.duration)
-async def back_to_size(callback_query: types.CallbackQuery, state: FSMContext):
-    await Form.size.set()
-    await get_location(callback_query, state)
 
 @dp.callback_query_handler(lambda c: c.data.startswith("dur_"), state=Form.duration)
 async def get_duration(callback_query: types.CallbackQuery, state: FSMContext):
@@ -145,7 +143,7 @@ async def get_duration(callback_query: types.CallbackQuery, state: FSMContext):
     duration = duration_map.get(callback_query.data)
     await state.update_data(duration=duration)
     await Form.name.set()
-    await bot.send_message(callback_query.from_user.id, "👤 Введіть ім’я:")
+    await bot.send_message(callback_query.from_user.id, "👤 Введіть ваше ім’я:")
     await callback_query.answer()
 
 @dp.message_handler(state=Form.name)
@@ -155,14 +153,16 @@ async def get_name(message: types.Message, state: FSMContext):
     kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add(
         KeyboardButton("📱 Поділитися номером", request_contact=True)
     )
-    await message.answer("📞 Надішліть номер:", reply_markup=kb)
+    await message.answer("📞 Надішліть номер телефону:", reply_markup=kb)
 
 @dp.message_handler(content_types=types.ContentType.CONTACT, state=Form.phone)
 async def get_phone_contact(message: types.Message, state: FSMContext):
+    await message.answer("✅ Дякуємо!", reply_markup=ReplyKeyboardRemove())
     await finish(message, message.contact.phone_number, state)
 
 @dp.message_handler(state=Form.phone)
 async def get_phone_text(message: types.Message, state: FSMContext):
+    await message.answer("✅ Дякуємо!", reply_markup=ReplyKeyboardRemove())
     await finish(message, message.text, state)
 
 async def finish(message, phone, state):
@@ -172,7 +172,7 @@ async def finish(message, phone, state):
         f"👤 {data['name']}\n📞 {phone}"
     )
     await bot.send_message(ADMIN_ID, text)
-    await message.answer("🚀 Заявка надіслана!", reply_markup=InlineKeyboardMarkup().add(
+    await message.answer("🚀 Ваша заявка надіслана!", reply_markup=InlineKeyboardMarkup().add(
         InlineKeyboardButton("⬅️ Повернутись на головну", callback_data="start")
     ))
     await state.finish()
