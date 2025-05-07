@@ -24,7 +24,7 @@ class Form(StatesGroup):
 
 @dp.message_handler(commands=["start"])
 async def start(message: types.Message):
-    kb = InlineKeyboardMarkup()
+    kb = InlineKeyboardMarkup(row_width=1)
     kb.add(
         InlineKeyboardButton("📍 Переглянути локації", callback_data="view_locations"),
         InlineKeyboardButton("📦 Орендувати бокс", callback_data="make_request")
@@ -34,7 +34,7 @@ async def start(message: types.Message):
 @dp.callback_query_handler(lambda c: c.data == "view_locations")
 async def view_locations(callback_query: types.CallbackQuery):
     locations = [
-        ("📍вул. Новокостянтинівська, 22/15, "https://maps.app.goo.gl/RpDz2E671UVgkQg57"),
+        ("📍вул. Новокостянтинівська, 22/15", "https://maps.app.goo.gl/RpDz2E671UVgkQg57"),
         ("📍просп. Відрадний, 107", "https://maps.app.goo.gl/gjmy3mC4TmWH27r87"),
         ("📍вул. Кирилівська, 41", "https://maps.app.goo.gl/5QYTYfAWqQ7W8pcm7"),
         ("📍вул. Дегтярівська, 21", "https://maps.app.goo.gl/2zrWpCkeF3r5TMh39"),
@@ -54,20 +54,20 @@ async def view_locations(callback_query: types.CallbackQuery):
 @dp.callback_query_handler(lambda c: c.data == "make_request")
 async def start_request(callback_query: types.CallbackQuery):
     kb = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-kb.add(
-    "вул. Новокостянтинівська, 22/15",
-    "просп. Відрадний, 107",
-    "вул. Кирилівська, 41",
-    "вул. Дегтярівська, 21",
-    "вул. Cадова, 16",
-    "вул. Безняковская, 21",
-    "вул. Миколи Василенка, 2",
-    "вул. Вінстона Черчилля, 42",
-    "вул. Лугова 9",
-    "вул. Євгенія Харченка, 35",
-    "вул. Володимира Брожка, 38/58",
-    "вул. Межигірська, 78"
-)
+    kb.add(
+        "вул. Новокостянтинівська, 22/15",
+        "просп. Відрадний, 107",
+        "вул. Кирилівська, 41",
+        "вул. Дегтярівська, 21",
+        "вул. Cадова, 16",
+        "вул. Безняковская, 21",
+        "вул. Миколи Василенка, 2",
+        "вул. Вінстона Черчилля, 42",
+        "вул. Лугова 9",
+        "вул. Євгенія Харченка, 35",
+        "вул. Володимира Брожка, 38/58",
+        "вул. Межигірська, 78"
+    )
     await Form.location.set()
     await bot.send_message(callback_query.from_user.id, "Оберіть локацію:", reply_markup=kb)
 
@@ -91,7 +91,7 @@ async def get_size(message: types.Message, state: FSMContext):
 async def get_duration(message: types.Message, state: FSMContext):
     await state.update_data(duration=message.text)
     await Form.next()
-    await message.answer("Введіть ваше ім’я:")
+    await message.answer("Введіть ваше ім’я:", reply_markup=types.ReplyKeyboardRemove())
 
 @dp.message_handler(state=Form.name)
 async def get_name(message: types.Message, state: FSMContext):
@@ -116,13 +116,13 @@ async def finish(message: types.Message, phone, state: FSMContext):
     text = (
         f"Нова заявка:\n\n"
         f"Локація: {data['location']}\n"
-    f"Розмір: {data['size']}\n"
+        f"Розмір: {data['size']}\n"
         f"Термін: {data['duration']}\n"
         f"Ім’я: {data['name']}\n"
         f"Телефон: {phone}"
     )
     await bot.send_message(ADMIN_ID, text)
-    await message.answer("Дякуємо! Ваша заявка надіслана. Ми з вами зв'яжемось.")
+    await message.answer("Дякуємо! Ваша заявка надіслана. Ми з вами зв'яжемось найближчим часом.", reply_markup=types.ReplyKeyboardRemove())
     await state.finish()
 
 if __name__ == "__main__":
