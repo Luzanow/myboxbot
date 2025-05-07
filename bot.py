@@ -108,7 +108,7 @@ async def get_location(callback_query: types.CallbackQuery, state: FSMContext):
         InlineKeyboardButton("📐 30м² – 6650грн", callback_data="size_30"),
     ).add(InlineKeyboardButton("⬅️ Назад", callback_data="order"))
     await Form.size.set()
-    await bot.send_message(callback_query.from_user.id, "📦 Оберіть розмір:", reply_markup=kb)
+    await bot.send_message(callback_query.from_user.id, "📦 Оберіть розмір! ціна вказана за місяць оренди!:", reply_markup=kb)
     await callback_query.answer()
 
 @dp.callback_query_handler(lambda c: c.data.startswith("size_"), state=Form.size)
@@ -129,7 +129,7 @@ async def get_size(callback_query: types.CallbackQuery, state: FSMContext):
         InlineKeyboardButton("⬅️ Назад", callback_data="order")
     )
     await Form.duration.set()
-    await bot.send_message(callback_query.from_user.id, "🧾 Знижка діє лише при повній оплаті за період.\n⏳ Оберіть термін:", reply_markup=kb)
+    await bot.send_message(callback_query.from_user.id, "🧾 Увага! Знижка діє лише при повній оплаті за вибраний період.\n⏳ Оберіть термін:", reply_markup=kb)
     await callback_query.answer()
 
 @dp.callback_query_handler(lambda c: c.data.startswith("dur_"), state=Form.duration)
@@ -172,7 +172,7 @@ async def finish(message, phone, state):
         f"👤 {data['name']}\n📞 {phone}"
     )
     await bot.send_message(ADMIN_ID, text)
-    await message.answer("🚀 Ваша заявка надіслана!", reply_markup=InlineKeyboardMarkup().add(
+    await message.answer("🚀 Ваша заявка надіслана! Ми зв'яжемося з Вами найближчим часом!", reply_markup=InlineKeyboardMarkup().add(
         InlineKeyboardButton("⬅️ Повернутись на головну", callback_data="start")
     ))
     await state.finish()
