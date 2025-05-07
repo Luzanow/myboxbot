@@ -69,7 +69,6 @@ async def view_locations(callback_query: types.CallbackQuery):
     ]
     for name, url in locations:
         kb.add(InlineKeyboardButton(name, url=url))
-    kb.add(InlineKeyboardButton("⬅️ Повернутись назад", callback_data="start"))
     await bot.send_message(callback_query.from_user.id, "📌 Локації:", reply_markup=kb)
     await callback_query.answer()
 
@@ -92,7 +91,6 @@ async def start_order(callback_query: types.CallbackQuery):
     ]
     for addr in addresses:
         kb.add(InlineKeyboardButton(addr, callback_data=f"loc_{addr}"))
-    kb.add(InlineKeyboardButton("⬅️ Назад", callback_data="start"))
     await Form.location.set()
     await bot.send_message(callback_query.from_user.id, "📍 Оберіть локацію:", reply_markup=kb)
     await callback_query.answer()
@@ -106,7 +104,7 @@ async def get_location(callback_query: types.CallbackQuery, state: FSMContext):
         InlineKeyboardButton("📐 7.5м² – 2350грн", callback_data="size_7"),
         InlineKeyboardButton("📐 15м² – 3800грн", callback_data="size_15"),
         InlineKeyboardButton("📐 30м² – 6650грн", callback_data="size_30"),
-    ).add(InlineKeyboardButton("⬅️ Назад", callback_data="order"))
+    )
     await Form.size.set()
     await bot.send_message(callback_query.from_user.id, "📦 Оберіть розмір:", reply_markup=kb)
     await callback_query.answer()
@@ -126,7 +124,6 @@ async def get_size(callback_query: types.CallbackQuery, state: FSMContext):
         InlineKeyboardButton("🗓 3–6 місяців (-3%)", callback_data="dur_3"),
         InlineKeyboardButton("🗓 6–12 місяців (-5%)", callback_data="dur_6"),
         InlineKeyboardButton("🗓 від 12 місяців (-10%)", callback_data="dur_12"),
-        InlineKeyboardButton("⬅️ Назад", callback_data="back_size")
     )
     await Form.duration.set()
     await bot.send_message(callback_query.from_user.id, "🧾 Знижка діє лише при повній оплаті за період.\n⏳ Оберіть термін:", reply_markup=kb)
