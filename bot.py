@@ -122,7 +122,7 @@ async def get_size(callback_query: types.CallbackQuery, state: FSMContext):
         InlineKeyboardButton("🗓 від 12 місяців (-10%)", callback_data="dur_12")
     )
     await Form.duration.set()
-    await bot.send_message(callback_query.from_user.id, "🧾 Знижка діє лише при повній оплаті за вибраний період.\n⏳ Оберіть термін оренди:", reply_markup=kb)
+    await bot.send_message(callback_query.from_user.id, "🧾 Увага! Знижка діє лише при повній оплаті за вибраний період.\n⏳ Оберіть термін оренди:", reply_markup=kb)
     await callback_query.answer()
 
 @dp.callback_query_handler(lambda c: c.data.startswith("dur_"), state=Form.duration)
@@ -143,11 +143,22 @@ async def get_duration(callback_query: types.CallbackQuery, state: FSMContext):
 async def get_name(message: types.Message, state: FSMContext):
     await state.update_data(name=message.text)
     await Form.phone.set()
-    await message.answer("📞 Введіть ваш номер телефону:")
+    contact_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+    contact_kb.add(KeyboardButton("📱 Поділитися номером", request_contact=True))
+    contact_kb.add(KeyboardButton("⬅️ Повернутись назад"))
+    await message.answer("📞 Надішліть ваш номер телефону кнопкою або введіть вручну:", reply_markup=contact_kb)
+
+@dp.message_handler(content_types=types.ContentType.CONTACT, state=Form.phone)
+async def get_contact_phone(message: types.Message, state: FSMContext):
+    await state.update_data(phone=message.contact.phone_number)
+    await finish_request(message, state)
 
 @dp.message_handler(state=Form.phone)
-async def get_phone(message: types.Message, state: FSMContext):
+async def get_manual_phone(message: types.Message, state: FSMContext):
     await state.update_data(phone=message.text)
+    await finish_request(message, state)
+
+async def finish_request(message: types.Message, state: FSMContext):
     data = await state.get_data()
     text = (
         f"✅ Нова заявка!\n\n📍 Локація: {data['location']}\n"
@@ -157,7 +168,7 @@ async def get_phone(message: types.Message, state: FSMContext):
         f"📞 Телефон: {data['phone']}"
     )
     await bot.send_message(ADMIN_ID, text)
-    await message.answer("🚀 Ваша заявка надіслана!", reply_markup=get_main_reply_keyboard())
+    await message.answer("🚀Дякую ! Ваша заявка надіслана! Ми зв'яжемося з Вами найближчим часом!🚀", reply_markup=get_main_reply_keyboard())
     await state.finish()
 
 if __name__ == "__main__":
