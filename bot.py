@@ -24,15 +24,15 @@ class Form(StatesGroup):
 
 @dp.message_handler(commands=["start"])
 async def start(message: types.Message):
-    kb = InlineKeyboardMarkup(row_width=2)
+    kb = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     kb.add(
-        InlineKeyboardButton("📍 Переглянути локації", callback_data="view_locations"),
-        InlineKeyboardButton("📦 Орендувати бокс", callback_data="rent_box")
+        KeyboardButton("📍 Переглянути локації"),
+        KeyboardButton("📦 Орендувати бокс")
     )
     await message.answer("👋 Вітаємо в MyBox! Оберіть дію:", reply_markup=kb)
 
-@dp.callback_query_handler(lambda c: c.data == "view_locations")
-async def view_locations(callback_query: types.CallbackQuery):
+@dp.message_handler(lambda message: message.text == "📍 Переглянути локації")
+async def view_locations(message: types.Message):
     kb = InlineKeyboardMarkup(row_width=1)
     locations = [
         ("📍 вул. Новокостянтинівська, 22/15", "https://maps.app.goo.gl/RpDz2E671UVgkQg57"),
@@ -51,12 +51,10 @@ async def view_locations(callback_query: types.CallbackQuery):
     for name, url in locations:
         kb.add(InlineKeyboardButton(name, url=url))
 
-    kb.add(InlineKeyboardButton("🔙 Назад", callback_data="start"))
+    await message.answer("📌 Оберіть локацію для перегляду на карті:", reply_markup=kb)
 
-    await callback_query.message.edit_text("📌 Оберіть локацію для перегляду на карті:", reply_markup=kb)
-
-@dp.callback_query_handler(lambda c: c.data == "rent_box")
-async def start_request(callback_query: types.CallbackQuery):
+@dp.message_handler(lambda message: message.text == "📦 Орендувати бокс")
+async def start_request(message: types.Message):
     kb = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     kb.add(
         "📍 вул. Новокостянтинівська, 22/15",
@@ -73,37 +71,60 @@ async def start_request(callback_query: types.CallbackQuery):
         "📍 вул. Межигірська, 78"
     )
     await Form.location.set()
-    await bot.send_message(callback_query.from_user.id, "📍 Оберіть локацію для оренди:", reply_markup=kb)
+    await message.answer("✅ Обрано режим оренди.\n📍 Будь ласка, оберіть локацію:", reply_markup=kb)
 
 @dp.message_handler(state=Form.location)
 async def get_location(message: types.Message, state: FSMContext):
     await state.update_data(location=message.text)
+    logging.info(f"[STATE] Location selected: {message.text}")
     kb = ReplyKeyboardMarkup(resize_keyboard=True).add("📐 5 м²", "📐 10 м²", "📐 15 м²")
     await Form.next()
-    await message.answer("📦 Оберіть розмір контейнера:", reply_markup=kb)
+    await message.answer("✅ Локація збережена.\n📦 Оберіть розмір контейнера:", reply_markup=kb)
 
 @dp.message_handler(state=Form.size)
 async def get_size(message: types.Message, state: FSMContext):
     await state.update_data(size=message.text)
-    await message.answer("🧾 <b>Знижка діє лише при повній оплаті за вибраний період.</b>", parse_mode="HTML")
-
+    logging.info(f"[STATE] Size selected: {message.text}")
+    await Form.next()
+    await message.answer("🧾 Знижка діє лише при повній оплаті за вибраний період.")
     kb = ReplyKeyboardMarkup(resize_keyboard=True).add(
         "🗓 1–3 місяці",
         "🗓 3–6 місяців (-5%)",
         "🗓 6–12 місяців (-10%)"
     )
-    await Form.next()
     await message.answer("⏳ Оберіть термін оренди:", reply_markup=kb)
 
-# Додано обробник телефону
-@dp.message_handler(content_types=types.ContentTypes.CONTACT, state=Form.phone)
+@dp.message_handler(state=Form.duration)
+async def get_duration(message: types.Message, state: FSMContext):
+    await state.update_data(duration=message.text)
+    logging.info(f"[STATE] Duration selected: {message.text}")
+    await Form.next()
+    await message.answer("👤 Введіть ваше ім’я:")
+
+@dp.message_handler(state=Form.name)
+async def get_name(message: types.Message, state: FSMContext):
+    await state.update_data(name=message.text)
+    logging.info(f"[STATE] Name received: {message.text}")
+    kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add(
+        KeyboardButton("📱 Поділитися номером", request_contact=True)
+    )
+    await Form.next()
+    await message.answer("📞 Надішліть ваш номер телефону:", reply_markup=kb)
+
+@dp.message_handler(content_types=types.ContentType.CONTACT, state=Form.phone)
 async def get_phone_contact(message: types.Message, state: FSMContext):
     await state.update_data(phone=message.contact.phone_number)
     data = await state.get_data()
-    text = f"✅ Нова заявка!\n\n📍 Локація: {data['location']}\n📐 Розмір: {data['size']}\n⏳ Термін: {data['duration']}\n👤 Ім’я: {data['name']}\n📞 Телефон: {data['phone']}"
+    text = (
+        f"✅ Нова заявка!\n\n📍 Локація: {data['location']}\n"
+        f"📐 Розмір: {data['size']}\n"
+        f"⏳ Термін: {data['duration']}\n"
+        f"👤 Ім’я: {data['name']}\n"
+        f"📞 Телефон: {data['phone']}"
+    )
     await bot.send_message(ADMIN_ID, text)
-    await message.answer("🚀 Ваша заявка надіслана!", reply_markup=types.ReplyKeyboardRemove())
+    await message.answer("🚀 Ваша заявка надіслана! Дякуємо за користування MyBox!", reply_markup=types.ReplyKeyboardRemove())
     await state.finish()
 
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+    executor.start_polling(dp, skip_updates=False)
