@@ -1,7 +1,7 @@
 import logging
 import os
 from aiogram import Bot, Dispatcher, executor, types
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
@@ -148,11 +148,16 @@ async def get_duration(callback_query: types.CallbackQuery, state: FSMContext):
 async def get_name(message: types.Message, state: FSMContext):
     await state.update_data(name=message.text)
     await Form.phone.set()
-    await message.answer("📞 Введіть ваш номер телефону:")
+    kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True).add(
+        KeyboardButton("📱 Поділитись номером телефону", request_contact=True)
+    )
+    await message.answer("📞 Поділіться номером кнопкою або введіть вручну:", reply_markup=kb)
 
+@dp.message_handler(content_types=types.ContentType.CONTACT, state=Form.phone)
 @dp.message_handler(state=Form.phone)
 async def get_phone(message: types.Message, state: FSMContext):
-    await state.update_data(phone=message.text)
+    phone = message.contact.phone_number if message.contact else message.text
+    await state.update_data(phone=phone)
     data = await state.get_data()
     text = (
         f"✅ Нова заявка!\n\n📍 Локація: {data['location']}\n"
