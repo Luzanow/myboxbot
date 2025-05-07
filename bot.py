@@ -22,6 +22,7 @@ class Form(StatesGroup):
     name = State()
     phone = State()
 
+# Головне меню
 @dp.message_handler(commands=["start"])
 async def start(message: types.Message):
     kb = InlineKeyboardMarkup(row_width=1).add(
@@ -36,6 +37,7 @@ async def back_to_main(callback_query: types.CallbackQuery):
     await start(callback_query.message)
     await callback_query.answer()
 
+# Контакти
 @dp.callback_query_handler(lambda c: c.data == "contact")
 async def contact_info(callback_query: types.CallbackQuery):
     kb = InlineKeyboardMarkup(row_width=1)
@@ -47,6 +49,7 @@ async def contact_info(callback_query: types.CallbackQuery):
     await bot.send_message(callback_query.from_user.id, "📞 Контактна інформація:\n👤 Тарас\n📱 +380 95 938 7317", reply_markup=kb)
     await callback_query.answer()
 
+# Перегляд локацій
 @dp.callback_query_handler(lambda c: c.data == "locations")
 async def view_locations(callback_query: types.CallbackQuery):
     kb = InlineKeyboardMarkup(row_width=1)
@@ -54,15 +57,7 @@ async def view_locations(callback_query: types.CallbackQuery):
         ("📍 вул. Новокостянтинівська, 22/15", "https://maps.app.goo.gl/RpDz2E671UVgkQg57"),
         ("📍 просп. Відрадний, 107", "https://maps.app.goo.gl/gjmy3mC4TmWH27r87"),
         ("📍 вул. Кирилівська, 41", "https://maps.app.goo.gl/5QYTYfAWqQ7W8pcm7"),
-        ("📍 вул. Дегтярівська, 21", "https://maps.app.goo.gl/2zrWpCkeF3r5TMh39"),
-        ("📍 вул. Cадова, 16", "https://maps.app.goo.gl/sCb6wYY3YQtVwVao7"),
-        ("📍 вул. Безняковская, 21", "https://maps.google.com/?q=50.402645,30.324247"),
-        ("📍 вул. Миколи Василенка, 2", "https://maps.app.goo.gl/Cp6tUB7DGbLz3bdFA"),
-        ("📍 вул. Вінстона Черчилля, 42", "https://maps.app.goo.gl/FNuaeyQHFxaxgCai9"),
-        ("📍 вул. Лугова 9", "https://maps.app.goo.gl/aCrfjN9vbBjhM17YA"),
-        ("📍 вул. Євгенія Харченка, 35", "https://maps.app.goo.gl/MpGAvtA6awMYKn7s6"),
-        ("📍 вул. Володимира Брожка, 38/58", "https://maps.app.goo.gl/vZAjD6eo84t8qyUk6"),
-        ("📍 вул. Межигірська, 78", "https://maps.app.goo.gl/MpGAvtA6awMYKn7s6")
+        ("📍 вул. Дегтярівська, 21", "https://maps.app.goo.gl/2zrWpCkeF3r5TMh39")
     ]
     for name, url in locations:
         kb.add(InlineKeyboardButton(name, url=url))
@@ -70,6 +65,7 @@ async def view_locations(callback_query: types.CallbackQuery):
     await bot.send_message(callback_query.from_user.id, "📌 Оберіть локацію для перегляду на карті:", reply_markup=kb)
     await callback_query.answer()
 
+# Початок оренди
 @dp.callback_query_handler(lambda c: c.data == "order")
 async def start_order(callback_query: types.CallbackQuery):
     kb = InlineKeyboardMarkup(row_width=1)
@@ -77,15 +73,7 @@ async def start_order(callback_query: types.CallbackQuery):
         "📍 вул. Новокостянтинівська, 22/15",
         "📍 просп. Відрадний, 107",
         "📍 вул. Кирилівська, 41",
-        "📍 вул. Дегтярівська, 21",
-        "📍 вул. Cадова, 16",
-        "📍 вул. Безняковская, 21",
-        "📍 вул. Миколи Василенка, 2",
-        "📍 вул. Вінстона Черчилля, 42",
-        "📍 вул. Лугова 9",
-        "📍 вул. Євгенія Харченка, 35",
-        "📍 вул. Володимира Брожка, 38/58",
-        "📍 вул. Межигірська, 78"
+        "📍 вул. Дегтярівська, 21"
     ]
     for addr in addresses:
         kb.add(InlineKeyboardButton(addr, callback_data=f"loc_{addr}"))
@@ -167,7 +155,9 @@ async def get_phone(message: types.Message, state: FSMContext):
         f"📞 Телефон: {data['phone']}"
     )
     await bot.send_message(ADMIN_ID, text)
-    await message.answer("🚀 Ваша заявка надіслана!", reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton("⬅️ Повернутись на головну", callback_data="start")))
+    await message.answer("🚀 Ваша заявка надіслана!", reply_markup=InlineKeyboardMarkup().add(
+        InlineKeyboardButton("⬅️ Повернутись на головну", callback_data="start")
+    ))
     await state.finish()
 
 if __name__ == "__main__":
