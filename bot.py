@@ -84,11 +84,12 @@ async def get_location(message: types.Message, state: FSMContext):
 async def get_size(message: types.Message, state: FSMContext):
     await state.update_data(size=message.text)
     await Form.duration.set()
-    await message.answer("🧾 Знижка діє лише при повній оплаті за вибраний період.")
+    await message.answer("🧾Увага! Знижка діє лише при повній оплаті за вибраний період.")
     kb = ReplyKeyboardMarkup(resize_keyboard=True).add(
         "🗓 1–3 місяці",
-        "🗓 3–6 місяців (-5%)",
-        "🗓 6–12 місяців (-10%)"
+        "🗓 3–6 місяців (-3%)",
+        "🗓 6-11 місяців (-5%)",
+        "🗓 від 12 місяців (-10%)"
     )
     await message.answer("⏳ Оберіть термін оренди:", reply_markup=kb)
 
